@@ -6,72 +6,91 @@
     <title>Atelier Cloud | Dashboard opérationnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
       :root {
-        color-scheme: dark;
-        --bg: #07141c;
-        --bg-soft: #0d1f2a;
-        --panel: rgba(16, 31, 42, 0.82);
-        --panel-strong: rgba(20, 38, 50, 0.95);
-        --line: rgba(147, 197, 253, 0.15);
-        --text: #e5f3ff;
-        --muted: #9fb7c7;
-        --green: #34d399;
-        --green-soft: rgba(52, 211, 153, 0.14);
-        --amber: #fbbf24;
-        --violet: #a78bfa;
-        --rose: #fb7185;
+        color-scheme: light;
+        --ink: #182d2a;
+        --paper: #f5f3ea;
+        --green: #176b56;
+        --green-soft: #dfeee7;
+        --coral: #ef7858;
+        --line: rgba(24, 45, 42, 0.15);
+        --muted: rgba(24, 45, 42, 0.62);
       }
 
       body {
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: radial-gradient(circle at top, #102837 0%, var(--bg) 45%);
-        color: var(--text);
+        font-family: 'DM Sans', sans-serif;
+        background-color: var(--paper);
+        color: var(--ink);
+      }
+
+      h1, h2, .display {
+        font-family: 'Manrope', sans-serif;
+      }
+
+      .paper-grid {
+        background-image: linear-gradient(rgba(24, 45, 42, 0.035) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(24, 45, 42, 0.035) 1px, transparent 1px);
+        background-size: 28px 28px;
       }
 
       .panel {
-        background: var(--panel);
+        background: rgba(255, 255, 255, 0.62);
         border: 1px solid var(--line);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(6px);
       }
     </style>
   </head>
-  <body class="min-h-screen">
-    <div class="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10">
-      <header class="mb-8 flex flex-col gap-4 border-b border-white/10 pb-6 md:flex-row md:items-center md:justify-between">
+  <body class="paper-grid min-h-screen">
+    <div class="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <header class="mb-8 flex flex-col gap-4 border-b border-emerald-950/15 pb-6 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Billing overview</p>
-          <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-white">Dashboard opérationnel Atelier Cloud</h1>
+          <a href="/" class="display text-lg font-extrabold tracking-tight text-emerald-950">atelier<span class="text-emerald-700">/</span>cloud</a>
+          <p class="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">Espace opérationnel</p>
+          <h1 class="mt-1 text-3xl font-extrabold tracking-tight text-emerald-950">Facturation et activité</h1>
         </div>
         <div class="flex items-center gap-3">
-          <span class="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-200">Demo</span>
-          <a href="/" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10">Retour accueil</a>
+          <span class="rounded-full border border-emerald-950/20 bg-white/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-900">Paiement test</span>
+          <a href="/" class="rounded-xl border border-emerald-800/20 bg-white/70 px-4 py-2 text-sm font-semibold text-emerald-900 transition hover:bg-white">Accueil</a>
         </div>
       </header>
 
-      <div class="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
+      <div class="mb-6 rounded-xl border border-emerald-800/15 bg-emerald-100/70 p-3 text-sm text-emerald-950/80">
         Source de données : Stripe API en direct + événements Stripe traités par l'application locale et stockés dans PostgreSQL. Ce dashboard est un aperçu opérationnel de démonstration.
       </div>
 
-      <section class="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article class="panel rounded-2xl p-5 shadow-lg shadow-emerald-500/5">
-          <p class="text-sm text-slate-300">Événements traités</p>
-          <p id="processedEvents" class="mt-4 text-3xl font-bold text-white">0</p>
-          <p class="mt-2 text-xs text-emerald-300">Total stocké par la DB locale</p>
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 text-sm text-emerald-950/60">
+        <span id="lastUpdated">Données non chargées</span>
+        <button id="refreshDashboard" type="button" class="rounded-lg border border-emerald-800/20 bg-white/60 px-3 py-2 font-semibold text-emerald-900 transition hover:bg-white">Actualiser</button>
+      </div>
+      <p id="loadError" role="alert" class="mb-6 hidden rounded-xl border border-rose-700/20 bg-rose-100 p-3 text-sm text-rose-900"></p>
+
+      <section class="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <article class="panel rounded-2xl p-5 shadow-sm">
+          <p class="text-sm text-emerald-950/65">Événements traités</p>
+          <p id="processedEvents" class="mt-4 text-3xl font-bold text-emerald-950">0</p>
+          <p class="mt-2 text-xs text-emerald-800">Webhooks et retours Checkout stockés localement</p>
         </article>
-        <article class="panel rounded-2xl p-5 shadow-lg shadow-violet-500/5">
-          <p class="text-sm text-slate-300">Paiements validés</p>
-          <p id="successfulPayments" class="mt-4 text-3xl font-bold text-white">0</p>
-          <p class="mt-2 text-xs text-violet-300">Issue des webhooks Stripe</p>
+        <article class="panel rounded-2xl p-5 shadow-sm">
+          <p class="text-sm text-emerald-950/65">Paiements validés</p>
+          <p id="successfulPayments" class="mt-4 text-3xl font-bold text-emerald-950">0</p>
+          <p class="mt-2 text-xs text-emerald-800">Factures payées sur la période</p>
         </article>
-        <article class="panel rounded-2xl p-5 shadow-lg shadow-amber-500/5">
-          <p class="text-sm text-slate-300">Abonnements actifs</p>
-          <p id="activeSubscriptions" class="mt-4 text-3xl font-bold text-white">0</p>
-          <p class="mt-2 text-xs text-amber-300">Checkout confirmé - suppression</p>
+        <article class="panel rounded-2xl p-5 shadow-sm">
+          <p class="text-sm text-emerald-950/65">Revenu encaissé</p>
+          <p id="totalRevenue" class="mt-4 text-3xl font-bold text-emerald-950">0 €</p>
+          <p class="mt-2 text-xs text-emerald-800">Période affichée</p>
         </article>
-        <article class="panel rounded-2xl p-5 shadow-lg shadow-rose-500/5">
-          <p class="text-sm text-slate-300">Outbox Slack</p>
-          <p id="outboxStatus" class="mt-4 text-3xl font-bold text-white">0</p>
-          <p class="mt-2 text-xs text-rose-300">Messages envoyés / en erreur</p>
+        <article class="panel rounded-2xl p-5 shadow-sm">
+          <p class="text-sm text-emerald-950/65">Abonnements actifs</p>
+          <p id="activeSubscriptions" class="mt-4 text-3xl font-bold text-emerald-950">0</p>
+          <p class="mt-2 text-xs text-emerald-800">Statut actuel dans Stripe</p>
+        </article>
+        <article class="panel rounded-2xl p-5 shadow-sm">
+          <p class="text-sm text-emerald-950/65">Outbox Slack</p>
+          <p id="outboxStatus" class="mt-4 text-3xl font-bold text-emerald-950">0</p>
+          <p class="mt-2 text-xs text-emerald-800">Envoyées ou en erreur</p>
         </article>
       </section>
 
@@ -79,19 +98,21 @@
         <article class="panel rounded-2xl p-5">
           <div class="mb-5 flex items-center justify-between">
             <div>
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Performance</p>
-              <h2 class="mt-2 text-xl font-bold text-white">Évolution du revenu</h2>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Performance</p>
+              <h2 class="mt-2 text-xl font-bold text-emerald-950">Revenu mensuel encaissé</h2>
+              <p id="trendPeriod" class="mt-1 text-xs text-emerald-950/60">Factures Stripe payées, d’octobre à octobre</p>
             </div>
-            <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200">Métrique</span>
           </div>
-          <div id="revenueTrend" class="mt-6 grid h-52 grid-cols-6 items-end gap-3"></div>
+          <div class="overflow-x-auto">
+            <div id="revenueTrend" class="mt-6 grid h-52 min-w-[900px] grid-cols-[repeat(13,minmax(0,1fr))] items-end gap-2"></div>
+          </div>
         </article>
 
         <aside class="panel rounded-2xl p-5">
           <div class="mb-5 flex items-center justify-between">
             <div>
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Système</p>
-              <h2 class="mt-2 text-xl font-bold text-white">Santé équipe</h2>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Système</p>
+              <h2 class="mt-2 text-xl font-bold text-emerald-950">État des services</h2>
             </div>
           </div>
           <div id="teamHealth" class="space-y-4"></div>
@@ -100,30 +121,31 @@
 
       <section class="mb-8 grid gap-6 xl:grid-cols-[1.1fr_1.4fr]">
         <article class="panel rounded-2xl p-5">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Funnel</p>
-          <h2 class="mt-2 text-xl font-bold text-white">Flux de conversion</h2>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Activité Stripe</p>
+          <h2 class="mt-2 text-xl font-bold text-emerald-950">Flux de conversion</h2>
+          <p class="mt-1 text-xs text-emerald-950/60">Checkouts terminés et abandonnés sur la période · abonnements actifs maintenant</p>
           <div id="funnel" class="mt-5 space-y-3"></div>
         </article>
 
         <article class="panel rounded-2xl p-5">
           <div class="mb-5 flex items-center justify-between">
             <div>
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Paiements</p>
-              <h2 class="mt-2 text-xl font-bold text-white">Transactions récentes</h2>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Paiements</p>
+              <h2 class="mt-2 text-xl font-bold text-emerald-950">Transactions récentes</h2>
             </div>
-            <span class="rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-200">Nouveaux</span>
+            <span class="rounded-full border border-emerald-950/15 bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-900">Stripe</span>
           </div>
-          <div class="overflow-hidden rounded-xl border border-white/10">
+          <div class="overflow-hidden rounded-xl border border-emerald-950/10">
             <table class="min-w-full text-left text-sm">
-              <thead class="bg-slate-900/60">
+              <thead class="bg-emerald-950/[0.04]">
                 <tr>
-                  <th class="px-4 py-3 font-semibold text-slate-200">Client</th>
-                  <th class="px-4 py-3 font-semibold text-slate-200">Plan</th>
-                  <th class="px-4 py-3 font-semibold text-slate-200">Montant</th>
-                  <th class="px-4 py-3 font-semibold text-slate-200">Statut</th>
+                  <th class="px-4 py-3 font-semibold text-emerald-950">Client</th>
+                  <th class="px-4 py-3 font-semibold text-emerald-950">Plan</th>
+                  <th class="px-4 py-3 font-semibold text-emerald-950">Montant</th>
+                  <th class="px-4 py-3 font-semibold text-emerald-950">Statut</th>
                 </tr>
               </thead>
-              <tbody id="paymentsTable" class="bg-slate-900/40"></tbody>
+              <tbody id="paymentsTable" class="bg-white/50"></tbody>
             </table>
           </div>
         </article>
@@ -132,8 +154,8 @@
       <section class="panel rounded-2xl p-5">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Alertes</p>
-            <h2 class="mt-2 text-xl font-bold text-white">Mise en garde opérationnelle</h2>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Alertes</p>
+            <h2 class="mt-2 text-xl font-bold text-emerald-950">Mise en garde opérationnelle</h2>
           </div>
         </div>
         <ul id="alertsList" class="grid gap-3 md:grid-cols-3"></ul>
@@ -141,17 +163,16 @@
     </div>
 
     <script>
-      const formatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
-
       function renderTrend(data) {
-        const max = Math.max(...data.map((item) => item.value || 0), 1);
+        const max = Math.max(...data.map((item) => item.value || 0), 0);
         const container = document.getElementById('revenueTrend');
         container.innerHTML = data.map((item) => {
-          const height = Math.max((item.value / max) * 100, 18);
+          const height = max > 0 ? (item.value / max) * 100 : 0;
           return `
-            <div class="flex h-full flex-col justify-end">
-              <div class="flex items-end justify-center rounded-t-xl bg-gradient-to-t from-emerald-400 via-emerald-300 to-violet-300" style="height: ${height}%"></div>
-              <span class="mt-3 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">${item.month}</span>
+            <div class="flex h-full min-w-0 flex-col justify-end" title="${item.month} : ${money(item.value)}">
+              <span class="mb-1 truncate text-center text-[10px] font-semibold text-emerald-950">${money(item.value, 0)}</span>
+              <div class="flex shrink-0 items-end justify-center rounded-t-md bg-gradient-to-t from-[#176b56] to-[#65c9a5]" style="height: ${height}%"></div>
+              <span class="mt-2 text-center text-[10px] font-medium text-emerald-950/65">${item.month}</span>
             </div>
           `;
         }).join('');
@@ -160,15 +181,12 @@
       function renderHealth(data) {
         const container = document.getElementById('teamHealth');
         container.innerHTML = data.map((item) => `
-          <div class="rounded-xl border border-white/10 bg-slate-900/50 p-3">
-            <div class="mb-2 flex items-center justify-between">
-              <span class="font-medium text-slate-100">${item.name}</span>
-              <span class="text-sm font-semibold text-emerald-300">${item.score}%</span>
+          <div class="rounded-xl border border-emerald-950/10 bg-white/65 p-3">
+            <div class="flex items-center justify-between gap-3">
+              <span class="font-semibold text-emerald-950">${item.name}</span>
+              <span class="text-right text-sm font-semibold text-emerald-800">${item.status}</span>
             </div>
-            <div class="h-2 rounded-full bg-white/10">
-              <div class="h-2 rounded-full bg-gradient-to-r from-emerald-400 to-violet-400" style="width: ${item.score}%"></div>
-            </div>
-            <p class="mt-2 text-xs text-slate-400">${item.detail}</p>
+            <p class="mt-2 text-xs text-emerald-950/60">${item.detail}</p>
           </div>
         `).join('');
       }
@@ -177,15 +195,15 @@
         const max = Math.max(...data.map((item) => item.value || 0), 1);
         const container = document.getElementById('funnel');
         container.innerHTML = data.map((item, index) => {
-          const width = Math.max((item.value / max) * 100, 26);
-          const tone = ['from-violet-500 to-indigo-400', 'from-sky-500 to-cyan-400', 'from-emerald-500 to-lime-400', 'from-amber-500 to-orange-400'][index % 4];
+          const width = max > 0 ? (item.value / max) * 100 : 0;
+          const tone = ['from-emerald-700 to-emerald-500', 'from-sky-600 to-cyan-500', 'from-emerald-400 to-lime-500', 'from-orange-500 to-[#ef7858]'][index % 4];
           return `
             <div>
-              <div class="mb-1 flex items-center justify-between text-xs text-slate-300">
+              <div class="mb-1 flex items-center justify-between text-xs text-emerald-950/75">
                 <span>${item.label}</span>
                 <span>${item.value}</span>
               </div>
-              <div class="h-2.5 rounded-full bg-white/10">
+              <div class="h-2.5 rounded-full bg-emerald-950/10">
                 <div class="h-2.5 rounded-full bg-gradient-to-r ${tone}" style="width: ${width}%"></div>
               </div>
             </div>
@@ -193,16 +211,24 @@
         }).join('');
       }
 
+      function money(value, fractionDigits = 2, currency = 'EUR') {
+        return new Intl.NumberFormat('fr-FR', {
+          style: 'currency',
+          currency,
+          maximumFractionDigits: fractionDigits,
+        }).format(value);
+      }
+
       function renderPayments(payments) {
         const table = document.getElementById('paymentsTable');
         table.innerHTML = payments.map((payment) => `
-          <tr class="border-t border-white/10">
-            <td class="px-4 py-3 text-slate-100">${payment.customer}</td>
-            <td class="px-4 py-3 text-slate-200">${payment.plan}</td>
-            <td class="px-4 py-3 text-slate-100">${formatter.format(payment.amount / 100)}</td>
+          <tr class="border-t border-emerald-950/10">
+            <td class="px-4 py-3 text-emerald-950">${payment.customer}</td>
+            <td class="px-4 py-3 text-emerald-950/75">${payment.plan}</td>
+            <td class="px-4 py-3 text-emerald-950">${money(payment.amount / 100, 2, payment.currency.toUpperCase())}</td>
             <td class="px-4 py-3">
-              <span class="inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${payment.status === 'paid' ? 'bg-emerald-500/15 text-emerald-200' : 'bg-amber-500/15 text-amber-200'}">
-                ${payment.status === 'paid' ? 'Payé' : 'En attente'}
+              <span class="inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${payment.status === 'paid' ? 'bg-emerald-100 text-emerald-900' : 'bg-orange-100 text-orange-900'}">
+                ${payment.status === 'paid' ? 'Payé' : payment.status === 'open' ? 'Ouvert' : payment.status === 'void' ? 'Annulé' : payment.status === 'draft' ? 'Brouillon' : payment.status}
               </span>
             </td>
           </tr>
@@ -210,12 +236,15 @@
       }
 
       async function loadDashboard() {
+        const errorMessage = document.getElementById('loadError');
         try {
           const response = await fetch('/api/v1/dashboard');
+          if (!response.ok) throw new Error('Impossible de charger les données Stripe. Vérifiez la connexion à Stripe et PostgreSQL.');
           const data = await response.json();
 
           document.getElementById('processedEvents').textContent = String(data.summary.processedEvents ?? 0);
           document.getElementById('successfulPayments').textContent = String(data.summary.successfulPayments ?? 0);
+          document.getElementById('totalRevenue').textContent = money(data.revenue.total, 2, data.revenue.currency);
           document.getElementById('activeSubscriptions').textContent = String(data.summary.activeSubscriptions ?? 0);
           document.getElementById('outboxStatus').textContent = String((data.summary.sentNotifications ?? 0) + (data.summary.failedNotifications ?? 0));
 
@@ -223,17 +252,25 @@
           renderHealth(data.teamHealth || []);
           renderFunnel(data.conversionFunnel || []);
           renderPayments(data.recentPayments || []);
+          const periodLabel = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
+          document.getElementById('trendPeriod').textContent = `Factures Stripe payées · ${periodLabel.format(new Date(data.revenuePeriod.start))} à ${periodLabel.format(new Date(data.revenuePeriod.end))}`;
 
           const alerts = document.getElementById('alertsList');
           alerts.innerHTML = (data.alerts || []).map((alert) => `
-            <li class="rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-sm text-slate-200">• ${alert}</li>
+            <li class="rounded-xl border border-emerald-950/10 bg-white/65 px-4 py-3 text-sm text-emerald-950/80">• ${alert}</li>
           `).join('');
+          errorMessage.classList.add('hidden');
+          document.getElementById('lastUpdated').textContent = `Actualisé à ${new Intl.DateTimeFormat('fr-FR', { timeStyle: 'medium' }).format(new Date())} · actualisation automatique chaque minute`;
         } catch (error) {
           console.error('Unable to load dashboard payload:', error);
+          errorMessage.textContent = error.message;
+          errorMessage.classList.remove('hidden');
         }
       }
 
+      document.getElementById('refreshDashboard').addEventListener('click', loadDashboard);
       loadDashboard();
+      window.setInterval(loadDashboard, 60_000);
     </script>
   </body>
 </html>

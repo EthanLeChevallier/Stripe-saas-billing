@@ -204,8 +204,29 @@
         setNotice('Paiement confirmé. Votre abonnement est bien enregistré et l’activation est en cours.', 'success');
       }
       if (params.get('checkout') === 'cancelled') {
-        applyStatus('cancelled', 'Paiement annulé. Aucun montant n’a été prélevé, et vous pouvez réessayer à tout moment.');
-        setNotice('Paiement annulé. Aucun montant n’a été prélevé et vous pouvez réessayer à tout moment.', 'cancelled');
+        applyStatus('cancelled', 'Retour de Stripe Checkout. Vérification du statut de la session en cours.');
+        setNotice('Vous avez quitté Stripe Checkout. Vérification du paiement en cours.', 'cancelled');
+        const cancellationToken = params.get('cancel_token');
+        if (cancellationToken) {
+          fetch('/api/v1/checkout/cancellations', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ token: cancellationToken }),
+          })
+            .then(async (response) => {
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.error || 'La notification Slack n’a pas pu être mise en file.');
+              setNotice(
+                result.queued
+                  ? 'Session non payée confirmée. Une notification Slack est en cours d’envoi.'
+                  : 'Session non payée confirmée. Ce retour a déjà été pris en compte.',
+                'cancelled',
+              );
+            })
+            .catch((error) => setNotice(error.message, 'error'));
+        } else {
+          setNotice('Retour reçu sans identifiant de session. Le statut du paiement ne peut pas être confirmé.', 'cancelled');
+        }
       }
 
       document.querySelectorAll('.checkout-button').forEach((button) => {

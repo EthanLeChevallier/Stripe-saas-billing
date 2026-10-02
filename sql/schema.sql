@@ -17,6 +17,14 @@ CREATE TABLE IF NOT EXISTS notification_outbox (
   sent_at TIMESTAMPTZ
 );
 
+CREATE TABLE IF NOT EXISTS checkout_cancellations (
+  cancellation_token TEXT PRIMARY KEY,
+  stripe_session_id TEXT NOT NULL UNIQUE,
+  plan_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  notified_at TIMESTAMPTZ
+);
+
 CREATE INDEX IF NOT EXISTS notification_outbox_ready_idx
   ON notification_outbox (next_attempt_at, id)
   WHERE status IN ('pending', 'processing');

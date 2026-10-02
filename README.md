@@ -23,7 +23,7 @@ Une démonstration SaaS de facturation avec Stripe Checkout, webhooks signés, P
 - un webhook Stripe vérifié et traité correctement
 - une base PostgreSQL pour sécuriser les événements et éviter les doublons
 - un flux de notification Slack réaliste avec retry et outbox
-- un dashboard de pilotage pour présenter le produit comme une vraie solution SaaS
+- un dashboard opérationnel alimenté par Stripe et les événements traités localement
 
 ### À retenir en 10 secondes
 
@@ -64,7 +64,8 @@ Express API
    ▼
 Stripe Checkout (mode test)
    │
-   └─ redirection vers /?checkout=success ou /?checkout=cancelled
+   ├─ succès : /?checkout=success
+   └─ retour sans paiement : /?checkout=cancelled&cancel_token=...
 
 Webhook Stripe
    │  POST /api/v1/webhooks/stripe
@@ -77,6 +78,10 @@ Validation signature + raw JSON
 Worker PostgreSQL / Slack
    │
    └─ Slack Incoming Webhook
+
+Retour du client après Checkout
+   │  POST /api/v1/checkout/cancellations
+   └─ vérification de la session Stripe + notification Slack idempotente
 ```
 
 ## 3) Ce qui est inclus
@@ -96,6 +101,7 @@ Worker PostgreSQL / Slack
 ### Base de données
 - table `processed_events` pour l'idempotence
 - table `notification_outbox` pour les notifications en file
+- table `checkout_cancellations` pour relier le retour Checkout à la session et éviter les notifications en double
 
 ### Intégrations
 - Stripe Checkout
@@ -202,8 +208,10 @@ Dans un terminal séparé :
 
 ```bash
 stripe login
-stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe --events checkout.session.completed,invoice.payment_succeeded,customer.subscription.deleted
+stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe --events checkout.session.completed,checkout.session.expired,invoice.payment_succeeded,customer.subscription.deleted
 ```
+
+Le clic sur le bouton de retour de Checkout redirige vers l'application et déclenche une notification locale en file d'attente. Ce retour n'est pas un webhook Stripe. `checkout.session.expired` est, lui, le webhook Stripe envoyé quand une session expire ; les deux chemins sont dédupliqués.
 
 Cette commande affiche un secret webhook local. Copiez-le dans `.env`.
 
@@ -226,6 +234,8 @@ Cette commande affiche un secret webhook local. Copiez-le dans `.env`.
 4. Valider le paiement
 5. Vérifier les redirections et les messages de statut
 
+Pour tester une annulation, retourner au site depuis Stripe Checkout : une notification `Checkout abandonné` est mise en file dans l'outbox Slack après vérification de la session auprès de Stripe.
+
 ### Vérification du webhook
 
 Vous pouvez observer :
@@ -243,18 +253,13 @@ Vous pouvez observer :
 | `GET /dashboard` | Dashboard d'activité |
 | `GET /api/v1/health` | Vérifie que le service et PostgreSQL répondent |
 | `POST /api/v1/checkout/sessions` | Crée une session Stripe Checkout |
+| `POST /api/v1/checkout/cancellations` | Vérifie un retour Checkout non payé et met une notification Slack en file |
 | `POST /api/v1/webhooks/stripe` | Reçoit et valide les événements Stripe |
 
 ## 11) État de la logique métier
 
 ### Tableau de bord
-Le dashboard est une démonstration visuelle de la productivité SaaS :
-- revenus mensuels
-- abonnés actifs
-- rétention
-- conversion
-- historique de paiement
-- alertes externes
+Le dashboard interroge l'API Stripe et affiche les factures payées, le revenu mensuel encaissé, les abonnements actifs et les checkouts abandonnés. Ce dernier indicateur vient de `checkout_cancellations.notified_at` et compte une seule fois les retours Checkout vérifiés ou les sessions expirées. La période couvre les mois calendaires d'octobre à octobre et s'actualise automatiquement chaque minute. Les événements traités et l'état des notifications viennent de PostgreSQL ; aucune série de démonstration n'est ajoutée.
 
 ### Idempotence
 Le système protège les événements Stripe contre les doublons :

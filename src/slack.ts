@@ -58,6 +58,16 @@ function eventDetails(event: Stripe.Event): {
     };
   }
 
+  if (event.type === 'checkout.session.expired') {
+    return {
+      status: 'Checkout expiré',
+      planName,
+      amount: object.amount_total ?? (planId ? plans[planId].amount : 0),
+      currency: object.currency ?? 'eur',
+      customerId,
+    };
+  }
+
   return {
     status: 'Checkout termine',
     planName,
@@ -67,8 +77,11 @@ function eventDetails(event: Stripe.Event): {
   };
 }
 
-export function buildSlackPayload(event: Stripe.Event): SlackPayload {
-  const detail = eventDetails(event);
+function formatSlackPayload(
+  detail: ReturnType<typeof eventDetails>,
+  eventId: string,
+  eventType: string,
+): SlackPayload {
   const amount = euroAmount(detail.amount, detail.currency);
   return {
     text: `${detail.status} | ${detail.planName} | ${amount}`,
@@ -89,11 +102,31 @@ export function buildSlackPayload(event: Stripe.Event): SlackPayload {
       {
         type: 'context',
         elements: [
-          { type: 'mrkdwn', text: `Evenement Stripe: \`${event.id}\` · \`${event.type}\`` },
+          { type: 'mrkdwn', text: `Événement: \`${eventId}\` · \`${eventType}\`` },
         ],
       },
     ],
   };
+}
+
+export function buildSlackPayload(event: Stripe.Event): SlackPayload {
+  return formatSlackPayload(eventDetails(event), event.id, event.type);
+}
+
+export function buildCheckoutCancellationPayload(session: Stripe.Checkout.Session): SlackPayload {
+  const planId = session.metadata?.plan as PlanId | undefined;
+  const planName = planId && plans[planId] ? plans[planId].name : 'Plan inconnu';
+  const customerId = typeof session.customer === 'string'
+    ? session.customer
+    : session.customer?.id ?? 'indisponible';
+
+  return formatSlackPayload({
+    status: 'Checkout abandonné',
+    planName,
+    amount: session.amount_total ?? (planId ? plans[planId].amount : 0),
+    currency: session.currency ?? 'eur',
+    customerId,
+  }, session.id, 'retour client depuis Checkout');
 }
 
 export async function postSlackMessage(webhookUrl: string, payload: SlackPayload): Promise<void> {
