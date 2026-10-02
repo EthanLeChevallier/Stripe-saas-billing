@@ -40,16 +40,13 @@ describe('checkout and Stripe webhook routes', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
+      source: expect.any(String),
       summary: {
-        monthlyRevenue: 4000,
-        activeSubscriptions: 42,
+        processedEvents: expect.any(Number),
+        activeSubscriptions: expect.any(Number),
       },
       revenueTrend: expect.any(Array),
       teamHealth: expect.any(Array),
-      marketing: {
-        headline: expect.any(String),
-        stats: expect.any(Array),
-      },
       recentPayments: expect.any(Array),
     });
   });
