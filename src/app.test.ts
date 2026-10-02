@@ -44,6 +44,8 @@ describe('checkout and Stripe webhook routes', () => {
         monthlyRevenue: 4000,
         activeSubscriptions: 42,
       },
+      revenueTrend: expect.any(Array),
+      teamHealth: expect.any(Array),
       recentPayments: expect.any(Array),
     });
   });

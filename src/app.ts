@@ -48,15 +48,40 @@ export function createApp({ stripe, pool, webhookSecret, appBaseUrl }: AppOption
         activeSubscriptions: 42,
         churn: 2.4,
         conversionRate: 7.8,
+        retentionRate: 94.2,
+        netRevenue: 3450,
+        forecastRevenue: 5400,
+        newCustomers: 18,
       },
+      revenueTrend: [
+        { month: 'Jan', value: 2100 },
+        { month: 'Fév', value: 2500 },
+        { month: 'Mar', value: 2700 },
+        { month: 'Avr', value: 3000 },
+        { month: 'Mai', value: 3600 },
+        { month: 'Jui', value: 4000 },
+      ],
+      teamHealth: [
+        { name: 'Support', score: 94, detail: 'Temps de réponse < 2h' },
+        { name: 'Paiements', score: 96, detail: 'Webhook Stripe stable' },
+        { name: 'Product', score: 88, detail: '2 idées en validation' },
+      ],
+      conversionFunnel: [
+        { label: 'Visiteurs', value: 2120 },
+        { label: 'Candidats', value: 630 },
+        { label: 'Essai', value: 168 },
+        { label: 'Payants', value: 42 },
+      ],
       recentPayments: [
         { id: 'pay_1001', plan: 'Pro', amount: 3000, customer: 'cus_01', status: 'paid', date: '2026-10-02T15:30:00.000Z' },
         { id: 'pay_1002', plan: 'Starter', amount: 1000, customer: 'cus_02', status: 'paid', date: '2026-10-02T14:42:00.000Z' },
         { id: 'pay_1003', plan: 'Pro', amount: 3000, customer: 'cus_03', status: 'pending', date: '2026-10-02T13:20:00.000Z' },
+        { id: 'pay_1004', plan: 'Starter', amount: 1000, customer: 'cus_04', status: 'paid', date: '2026-10-02T12:10:00.000Z' },
       ],
       alerts: [
-        'Webhook Stripe en cours de surveillance',
-        '2 abonnements à relancer',
+        'Webhook Stripe surveillé en continu',
+        '2 abonnements à relancer cette semaine',
+        'Taux de conversion en hausse de 12%',
       ],
     });
   });
