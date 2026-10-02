@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Demonstrateur de facturation SaaS avec Stripe Checkout.">
+  <title>Atelier Cloud | Abonnements</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+    :root { color-scheme: light; --ink: #182d2a; --green: #176b56; --coral: #ef7858; }
+    body { font-family: 'DM Sans', sans-serif; color: var(--ink); background-color: #f4f5ed; }
+    h1, h2, .display { font-family: 'Manrope', sans-serif; }
+    .paper-grid { background-image: linear-gradient(rgba(24,45,42,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(24,45,42,.035) 1px, transparent 1px); background-size: 28px 28px; }
+    @media (prefers-reduced-motion: no-preference) { .rise { animation: rise .55s ease-out both; } .rise-delay { animation-delay: .12s; } @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } } }
+  </style>
+</head>
+<body class="paper-grid min-h-screen">
+  <main class="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-12">
+    <header class="flex items-center justify-between border-b border-emerald-950/15 pb-5">
+      <a href="/" class="display text-lg font-extrabold tracking-tight">atelier<span class="text-emerald-700">/</span>cloud</a>
+      <span class="rounded-full border border-emerald-950/20 px-3 py-1 text-xs font-semibold uppercase">Paiement test</span>
+    </header>
+    <section class="rise grid gap-10 py-14 md:grid-cols-[1.1fr_.9fr] md:items-end md:py-20">
+      <div>
+        <p class="mb-4 text-sm font-bold uppercase text-emerald-800">Abonnements clairs, croissance sereine</p>
+        <h1 class="display max-w-xl text-4xl font-extrabold leading-tight sm:text-5xl">Le bon espace pour votre prochaine idee.</h1>
+      </div>
+      <p class="max-w-md text-base leading-7 text-emerald-950/70">Choisissez un plan. Votre paiement est traite sur la page securisee Stripe Checkout.</p>
+    </section>
+    <section aria-label="Plans disponibles" class="grid gap-5 md:grid-cols-2">
+      <article class="rise rounded-md border border-emerald-950/20 bg-[#fbfcf7] p-7 sm:p-9">
+        <div class="flex items-start justify-between gap-4"><h2 class="display text-2xl font-bold">Starter</h2><span class="text-sm font-semibold text-emerald-800">Pour demarrer</span></div>
+        <p class="display mt-8 text-4xl font-extrabold">10 €<span class="ml-1 text-base font-medium text-emerald-950/60">/ mois</span></p>
+        <ul class="my-8 space-y-3 border-t border-emerald-950/10 pt-6 text-sm text-emerald-950/75"><li>✓ Espace de travail essentiel</li><li>✓ Facturation mensuelle</li><li>✓ Resiliation a tout moment</li></ul>
+        <button data-plan="starter" class="checkout-button flex w-full items-center justify-center gap-2 rounded-sm bg-[#176b56] px-5 py-3 font-semibold text-white transition hover:bg-[#105340] disabled:cursor-wait disabled:opacity-60">Choisir Starter <span aria-hidden="true">→</span></button>
+      </article>
+      <article class="rise rise-delay relative rounded-md border-2 border-emerald-800 bg-[#e9f1e5] p-7 sm:p-9">
+        <span class="absolute right-5 top-0 -translate-y-1/2 bg-[#ef7858] px-3 py-1 text-xs font-bold uppercase text-[#2e2921]">Le plus choisi</span>
+        <div class="flex items-start justify-between gap-4"><h2 class="display text-2xl font-bold">Pro</h2><span class="text-sm font-semibold text-emerald-800">Pour accelerer</span></div>
+        <p class="display mt-8 text-4xl font-extrabold">30 €<span class="ml-1 text-base font-medium text-emerald-950/60">/ mois</span></p>
+        <ul class="my-8 space-y-3 border-t border-emerald-950/10 pt-6 text-sm text-emerald-950/75"><li>✓ Outils et capacite etendus</li><li>✓ Facturation mensuelle</li><li>✓ Resiliation a tout moment</li></ul>
+        <button data-plan="pro" class="checkout-button flex w-full items-center justify-center gap-2 rounded-sm bg-[#ef7858] px-5 py-3 font-semibold text-[#2e2921] transition hover:bg-[#e66a49] disabled:cursor-wait disabled:opacity-60">Choisir Pro <span aria-hidden="true">→</span></button>
+      </article>
+    </section>
+    <p id="notice" role="status" aria-live="polite" class="mt-6 min-h-6 text-sm font-medium"></p>
+    <footer class="mt-12 flex flex-col justify-between gap-2 border-t border-emerald-950/15 pt-5 text-xs text-emerald-950/60 sm:flex-row"><span>Atelier Cloud · Demonstrateur de facturation</span><span>Environnement de test Stripe</span></footer>
+  </main>
+  <script>
+    const notice = document.querySelector('#notice');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') notice.textContent = 'Paiement confirme. Votre abonnement est en cours d’activation.';
+    if (params.get('checkout') === 'cancelled') notice.textContent = 'Paiement annule. Aucun montant n’a ete preleve.';
+    document.querySelectorAll('.checkout-button').forEach((button) => {
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        notice.textContent = 'Preparation du paiement securise…';
+        try {
+          const response = await fetch('/api/v1/checkout/sessions', {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ plan: button.dataset.plan }),
+          });
+          const result = await response.json();
+          if (!response.ok || !result.url) throw new Error(result.error || 'Session indisponible.');
+          window.location.assign(result.url);
+        } catch (error) {
+          notice.textContent = error.message;
+          button.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
