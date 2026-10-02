@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Atelier Cloud | Dashboard premium</title>
+    <title>Atelier Cloud | Dashboard opérationnel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       :root {
@@ -40,7 +40,7 @@
       <header class="mb-8 flex flex-col gap-4 border-b border-white/10 pb-6 md:flex-row md:items-center md:justify-between">
         <div>
           <p class="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Billing overview</p>
-          <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-white">Dashboard de démonstration Stripe</h1>
+          <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-white">Dashboard opérationnel Atelier Cloud</h1>
         </div>
         <div class="flex items-center gap-3">
           <span class="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-200">Demo</span>
@@ -49,7 +49,7 @@
       </header>
 
       <div class="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
-        Source de données : événements Stripe traités par l'application locale et stockés dans PostgreSQL. Ce tableau de bord est un aperçu de démonstration, pas un système de reporting prod.
+        Source de données : Stripe API en direct + événements Stripe traités par l'application locale et stockés dans PostgreSQL. Ce dashboard est un aperçu opérationnel de démonstration.
       </div>
 
       <section class="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -101,7 +101,7 @@
       <section class="mb-8 grid gap-6 xl:grid-cols-[1.1fr_1.4fr]">
         <article class="panel rounded-2xl p-5">
           <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Funnel</p>
-          <h2 class="mt-2 text-xl font-bold text-white">Conversion</h2>
+          <h2 class="mt-2 text-xl font-bold text-white">Flux de conversion</h2>
           <div id="funnel" class="mt-5 space-y-3"></div>
         </article>
 

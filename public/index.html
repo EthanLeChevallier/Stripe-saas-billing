@@ -49,9 +49,9 @@
 
       <section class="rise grid gap-8 py-12 md:grid-cols-[1.15fr_0.85fr] md:items-end md:py-16">
         <div>
-          <p class="mb-5 text-sm font-bold uppercase tracking-[0.18em] text-emerald-800">Paiements premium, croissance sereine</p>
-          <h1 class="display max-w-xl text-4xl font-extrabold leading-[1.02] sm:text-6xl">Le moteur de croissance de votre prochain SaaS.</h1>
-          <p class="mt-5 max-w-lg text-base leading-7 text-emerald-950/72">Des abonnements clairs, des paiements sécurisés et une expérience qui inspire confiance dès la première visite.</p>
+          <p class="mb-5 text-sm font-bold uppercase tracking-[0.18em] text-emerald-800">Facturation Stripe en démonstration</p>
+          <h1 class="display max-w-xl text-4xl font-extrabold leading-[1.02] sm:text-6xl">La facturation simple de votre prochain service.</h1>
+          <p class="mt-5 max-w-lg text-base leading-7 text-emerald-950/72">Des abonnements clairs, des paiements sécurisés et une expérience de test qui montre exactement comment le flux Stripe fonctionne.</p>
         </div>
 
         <div class="glass rounded-2xl p-5 shadow-sm">
@@ -60,10 +60,12 @@
               <span class="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">Statut</span>
               <span id="status-badge" class="rounded-full border border-emerald-900/15 bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase text-emerald-900">Prêt</span>
             </div>
-            <p id="status-text" class="text-sm leading-6 text-emerald-950/72">Choisissez un plan pour lancer votre abonnement test. Le paiement est traité sur la page sécurisée Stripe Checkout.</p>
+            <p id="status-text" class="text-sm leading-6 text-emerald-950/72">Choisissez un plan pour lancer votre abonnement de démonstration. Le paiement se déroule sur la page Stripe Checkout.</p>
           </div>
         </div>
       </section>
+
+      <div id="notice" role="status" aria-live="polite" class="mt-4 hidden rounded-2xl border border-emerald-700/20 bg-emerald-100 px-5 py-3 text-sm font-medium text-emerald-900 shadow-sm"></div>
 
       <section aria-label="Plans disponibles" class="grid gap-5 md:grid-cols-2">
         <article class="rise rounded-[22px] border border-emerald-950/15 bg-white/55 p-7 shadow-sm sm:p-9">
@@ -99,8 +101,8 @@
       <section class="mt-16 grid gap-6 rounded-[28px] border border-emerald-950/15 bg-white/40 p-6 shadow-sm sm:p-8 lg:grid-cols-[1.2fr_0.8fr]">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Pourquoi les équipes passent à Atelier Cloud</p>
-          <h2 class="display mt-3 text-3xl font-extrabold text-emerald-950">Un produit qui fait avancer les ventes, sans friction.</h2>
-          <p class="mt-4 max-w-xl text-base leading-7 text-emerald-950/70">Atelier Cloud unifie la facturation, le support client et le suivi d’activité pour offrir une expérience premium. Les équipes peuvent vendre plus vite, moins de friction, et garder un vrai contrôle sur leur croissance.</p>
+          <h2 class="display mt-3 text-3xl font-extrabold text-emerald-950">Un flux de paiement propre, lisible et testable.</h2>
+          <p class="mt-4 max-w-xl text-base leading-7 text-emerald-950/70">Atelier Cloud montre le fonctionnement d’un abonnement SaaS réel : plan choisi, paiement sécurisé, webhook reçu, puis suivi opérationnel dans le dashboard.</p>
         </div>
         <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
           <div class="rounded-2xl border border-emerald-950/10 bg-white/80 p-4">
@@ -121,26 +123,26 @@
       <section class="mt-16 grid gap-5 md:grid-cols-3">
         <article class="rounded-[22px] border border-emerald-950/15 bg-white/55 p-6 shadow-sm">
           <div class="mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-emerald-100 text-lg">⚡</div>
-          <h3 class="display text-2xl font-bold text-emerald-950">Activation instantanée</h3>
-          <p class="mt-3 text-sm leading-6 text-emerald-950/70">Le client passe de la découverte au paiement en quelques secondes, sans friction ni confusion.</p>
+          <h3 class="display text-2xl font-bold text-emerald-950">Activation claire</h3>
+          <p class="mt-3 text-sm leading-6 text-emerald-950/70">Le client passe de la sélection du plan au paiement sans ambiguïté, avec une confirmation explicite qui reste visible.</p>
         </article>
         <article class="rounded-[22px] border border-emerald-950/15 bg-white/55 p-6 shadow-sm">
           <div class="mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-orange-100 text-lg">🛡️</div>
-          <h3 class="display text-2xl font-bold text-emerald-950">Confiance renforcée</h3>
-          <p class="mt-3 text-sm leading-6 text-emerald-950/70">Paiements sécurisés et webhooks supervisés pour une expérience de paiement fiable et propre.</p>
+          <h3 class="display text-2xl font-bold text-emerald-950">Confiance opérationnelle</h3>
+          <p class="mt-3 text-sm leading-6 text-emerald-950/70">Paiements sécurisés, vérification de signature Stripe et suivi des événements pour un flux fiable.</p>
         </article>
         <article class="rounded-[22px] border border-emerald-950/15 bg-white/55 p-6 shadow-sm">
           <div class="mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-violet-100 text-lg">📈</div>
-          <h3 class="display text-2xl font-bold text-emerald-950">Croissance mesurable</h3>
-          <p class="mt-3 text-sm leading-6 text-emerald-950/70">Suivi clair des performances, de la conversion et du revenu pour piloter vos décisions.</p>
+          <h3 class="display text-2xl font-bold text-emerald-950">Suivi concret</h3>
+          <p class="mt-3 text-sm leading-6 text-emerald-950/70">Le dashboard affiche des données vérifiables issues de Stripe et des événements locaux, sans chiffres inventés.</p>
         </article>
       </section>
 
       <section class="mt-16 rounded-[28px] border border-emerald-950/15 bg-[#173f39] p-6 text-white shadow-sm sm:p-8">
         <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">Trusted by fast-growing teams</p>
-            <h2 class="display mt-3 text-3xl font-extrabold">La confiance d’équipes qui veulent aller vite.</h2>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">Flux de démonstration</p>
+            <h2 class="display mt-3 text-3xl font-extrabold">Le bon niveau de simplicité pour expliquer un SaaS.</h2>
           </div>
           <a href="/dashboard" class="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 font-semibold text-emerald-950 transition hover:bg-emerald-50">Voir le dashboard <span aria-hidden="true">→</span></a>
         </div>
@@ -150,8 +152,6 @@
           <div class="rounded-2xl border border-white/10 bg-white/5 p-4">Orbit Forge</div>
         </div>
       </section>
-
-      <p id="notice" role="status" aria-live="polite" class="mt-7 min-h-[28px] text-sm font-medium text-emerald-950/75"></p>
 
       <div class="mt-8 flex justify-end">
         <a href="/dashboard" class="inline-flex items-center gap-2 rounded-xl border border-emerald-800/20 bg-white/70 px-4 py-2 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-800/30 hover:bg-white">Voir le dashboard <span aria-hidden="true">→</span></a>
@@ -184,19 +184,34 @@
         statusText.textContent = message;
       }
 
+      function setNotice(message, tone = 'success') {
+        if (!notice) return;
+        notice.textContent = message;
+        notice.classList.remove('hidden', 'border-emerald-700/20', 'bg-emerald-100', 'text-emerald-900', 'border-amber-700/20', 'bg-amber-100', 'text-amber-900', 'border-rose-700/20', 'bg-rose-100', 'text-rose-900');
+
+        if (tone === 'error') {
+          notice.classList.add('border-rose-700/20', 'bg-rose-100', 'text-rose-900');
+        } else if (tone === 'cancelled') {
+          notice.classList.add('border-amber-700/20', 'bg-amber-100', 'text-amber-900');
+        } else {
+          notice.classList.add('border-emerald-700/20', 'bg-emerald-100', 'text-emerald-900');
+        }
+        notice.classList.remove('hidden');
+      }
+
       if (params.get('checkout') === 'success') {
         applyStatus('success', 'Paiement validé. Votre abonnement est en cours d’activation et les événements Stripe sont en cours de traitement.');
-        notice.textContent = 'Paiement confirmé. Votre abonnement est maintenant prêt à être activé.';
+        setNotice('Paiement confirmé. Votre abonnement est bien enregistré et l’activation est en cours.', 'success');
       }
       if (params.get('checkout') === 'cancelled') {
         applyStatus('cancelled', 'Paiement annulé. Aucun montant n’a été prélevé, et vous pouvez réessayer à tout moment.');
-        notice.textContent = 'Paiement annulé. Aucun montant n’a été prélevé.';
+        setNotice('Paiement annulé. Aucun montant n’a été prélevé et vous pouvez réessayer à tout moment.', 'cancelled');
       }
 
       document.querySelectorAll('.checkout-button').forEach((button) => {
         button.addEventListener('click', async () => {
           button.disabled = true;
-          notice.textContent = 'Préparation du paiement sécurisé…';
+          setNotice('Préparation du paiement sécurisé…', 'success');
           applyStatus('default', 'Création d’une session Stripe Checkout en cours…');
           try {
             const response = await fetch('/api/v1/checkout/sessions', {
@@ -210,7 +225,7 @@
             }
             window.location.assign(result.url);
           } catch (error) {
-            notice.textContent = error.message;
+            setNotice(error.message, 'error');
             applyStatus('cancelled', 'Le paiement a échoué. Vérifiez votre configuration Stripe et réessayez.');
             button.disabled = false;
           }

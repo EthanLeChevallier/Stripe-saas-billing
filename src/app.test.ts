@@ -5,7 +5,10 @@ import { createApp } from './app';
 
 function dependencies() {
   const stripe = {
-    checkout: { sessions: { create: vi.fn() } },
+    checkout: { sessions: { create: vi.fn(), list: vi.fn().mockResolvedValue({ data: [] }) } },
+    invoices: { list: vi.fn().mockResolvedValue({ data: [] }) },
+    subscriptions: { list: vi.fn().mockResolvedValue({ data: [] }) },
+    customers: { list: vi.fn().mockResolvedValue({ data: [] }) },
     webhooks: { constructEvent: vi.fn() },
   } as unknown as Stripe;
   const pool = {
@@ -40,7 +43,7 @@ describe('checkout and Stripe webhook routes', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
-      source: expect.any(String),
+      source: expect.stringContaining('Stripe API'),
       summary: {
         processedEvents: expect.any(Number),
         activeSubscriptions: expect.any(Number),

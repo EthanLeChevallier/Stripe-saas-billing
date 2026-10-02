@@ -17,6 +17,29 @@ export function createApp({ stripe, pool, webhookSecret, appBaseUrl }: AppOption
   const app = express();
   app.use(express.static('public'));
 
+  const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+  const buildRevenueTrend = (invoices: Array<{ created?: number; amount_paid?: number; status?: string; paid?: boolean }>) => {
+    const now = new Date();
+    const values = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      const total = invoices
+        .filter((invoice) => invoice.paid && invoice.status === 'paid' && invoice.created)
+        .reduce((sum, invoice) => {
+          const createdAt = new Date(Number(invoice.created) * 1000);
+          if (`${createdAt.getFullYear()}-${createdAt.getMonth()}` !== monthKey) {
+            return sum;
+          }
+          return sum + Number(invoice.amount_paid ?? 0);
+        }, 0);
+
+      return { month: monthNames[date.getMonth()], value: total / 100 };
+    });
+
+    return values;
+  };
+
   app.get('/dashboard', (_request: Request, response: Response) => {
     response.sendFile(path.join(process.cwd(), 'public', 'dashboard.html'));
   });
@@ -43,66 +66,95 @@ export function createApp({ stripe, pool, webhookSecret, appBaseUrl }: AppOption
 
   app.get('/api/v1/dashboard', async (_request: Request, response: Response) => {
     try {
-      const eventsResult = await pool.query(`
+      const [eventsResult, outboxStatus, stripeSnapshot] = await Promise.all([
+        pool.query(`
         SELECT
           COUNT(*)::int AS processed_events,
           COUNT(*) FILTER (WHERE event_type = 'checkout.session.completed')::int AS checkout_completed,
           COUNT(*) FILTER (WHERE event_type = 'invoice.payment_succeeded')::int AS invoice_paid,
           COUNT(*) FILTER (WHERE event_type = 'customer.subscription.deleted')::int AS cancellations
         FROM processed_events
-      `);
+      `),
+        pool.query(`
+        SELECT status, COUNT(*)::int AS count
+        FROM notification_outbox
+        GROUP BY status
+      `),
+        Promise.all([
+          stripe.invoices.list({ limit: 50 }).catch(() => ({ data: [] })),
+          stripe.subscriptions.list({ limit: 50, status: 'all' }).catch(() => ({ data: [] })),
+          stripe.checkout.sessions.list({ limit: 50 }).catch(() => ({ data: [] })),
+        ]),
+      ]);
+
       const summaryRow = eventsResult.rows?.[0] ?? {};
       const processedEvents = Number(summaryRow.processed_events ?? 0);
       const checkoutCompleted = Number(summaryRow.checkout_completed ?? 0);
       const invoicePaid = Number(summaryRow.invoice_paid ?? 0);
       const cancellations = Number(summaryRow.cancellations ?? 0);
 
-      const outboxStatus = await pool.query(`
-        SELECT status, COUNT(*)::int AS count
-        FROM notification_outbox
-        GROUP BY status
-      `);
+      const invoiceList = Array.isArray((stripeSnapshot as Array<{ data?: any[] }>)[0]?.data) ? ((stripeSnapshot as Array<{ data?: any[] }>)[0].data ?? []) : [];
+      const subscriptionList = Array.isArray((stripeSnapshot as Array<{ data?: any[] }>)[1]?.data) ? ((stripeSnapshot as Array<{ data?: any[] }>)[1].data ?? []) : [];
+      const checkoutSessionList = Array.isArray((stripeSnapshot as Array<{ data?: any[] }>)[2]?.data) ? ((stripeSnapshot as Array<{ data?: any[] }>)[2].data ?? []) : [];
+
+      const paidInvoices = invoiceList.filter((invoice: any) => invoice?.paid && invoice?.status === 'paid');
+      const successfulPayments = paidInvoices.length;
+      const liveRevenue = paidInvoices.reduce((sum: number, invoice: any) => sum + Number(invoice.amount_paid ?? 0), 0) / 100;
+      const activeSubscriptions = subscriptionList.filter((subscription: any) => ['active', 'trialing', 'past_due'].includes(subscription?.status)).length;
+      const completedCheckouts = checkoutSessionList.filter((session: any) => session?.payment_status === 'paid' || session?.status === 'complete').length;
+
       const outboxRows = outboxStatus.rows ?? [];
       const outboxMap = Object.fromEntries(outboxRows.map((row) => [row.status, Number(row.count)]));
       const pendingNotifications = Number(outboxMap.pending ?? 0);
       const sentNotifications = Number(outboxMap.sent ?? 0);
       const failedNotifications = Number(outboxMap.failed ?? 0);
 
+      const recentPayments = invoiceList.slice(0, 3).map((invoice: any) => {
+        const firstLine = invoice?.lines?.data?.[0] ?? {};
+        const planName = firstLine?.description || firstLine?.price?.nickname || 'Abonnement';
+        return {
+          id: invoice.id ?? 'invoice_unknown',
+          plan: planName,
+          amount: Number(invoice.amount_paid ?? invoice.total ?? 0),
+          customer: invoice.customer ?? 'Client Stripe',
+          status: invoice.paid ? 'paid' : 'pending',
+          date: new Date(Number(invoice.created ?? Date.now() / 1000) * 1000).toISOString(),
+        };
+      });
+
+      const revenueTrend = buildRevenueTrend(invoiceList);
+
+      const summary = {
+        processedEvents: Number(processedEvents ?? 0),
+        successfulPayments: successfulPayments || Number(invoicePaid ?? 0),
+        activeSubscriptions: Math.max(0, activeSubscriptions || Number(checkoutCompleted ?? 0) - Number(cancellations ?? 0)),
+        pendingNotifications,
+        sentNotifications,
+        failedNotifications,
+      };
+
       response.status(200).json({
-        source: 'processed Stripe webhook events + local outbox',
-        dashboardNote: 'This is a demo operational snapshot from Stripe test webhooks processed by this app. It is not a production analytics source.',
-        summary: {
-          processedEvents: Number(processedEvents ?? 0),
-          successfulPayments: Number(invoicePaid ?? 0),
-          activeSubscriptions: Math.max(0, Number(checkoutCompleted ?? 0) - Number(cancellations ?? 0)),
-          pendingNotifications,
-          sentNotifications,
-          failedNotifications,
-        },
-        revenueTrend: [
-          { month: 'Jan', value: Math.max(0, Number(invoicePaid ?? 0)) },
-          { month: 'Fév', value: Math.max(0, Number(invoicePaid ?? 0) + 1) },
-          { month: 'Mar', value: Math.max(0, Number(invoicePaid ?? 0) + 2) },
-          { month: 'Avr', value: Math.max(0, Number(invoicePaid ?? 0) + 3) },
-          { month: 'Mai', value: Math.max(0, Number(invoicePaid ?? 0) + 4) },
-          { month: 'Jui', value: Math.max(0, Number(invoicePaid ?? 0) + 5) },
-        ],
+        source: 'Stripe API + processed webhook events + local outbox',
+        dashboardNote: 'This is a demo operational snapshot combining live Stripe data and the local webhook/outbox trail used by the app.',
+        summary,
+        revenueTrend,
         teamHealth: [
+          { name: 'Stripe API', score: invoiceList.length > 0 ? 98 : 0, detail: 'Live invoice and subscription data retrieved from Stripe' },
           { name: 'Webhook', score: Number(processedEvents ?? 0) > 0 ? 98 : 0, detail: 'Stripe events received and stored' },
           { name: 'Slack', score: pendingNotifications > 0 ? 76 : 92, detail: 'Outbox delivery status' },
           { name: 'Database', score: 94, detail: 'Postgres idempotence is enabled' },
         ],
         conversionFunnel: [
-          { label: 'Visiteurs', value: 2120 },
-          { label: 'Candidats', value: 630 },
-          { label: 'Essai', value: 168 },
-          { label: 'Payants', value: Math.max(Number(checkoutCompleted ?? 0), 1) },
+          { label: 'Sessions Checkout', value: completedCheckouts || 0 },
+          { label: 'Abonnements actifs', value: activeSubscriptions || 0 },
+          { label: 'Paiements réussis', value: successfulPayments || 0 },
+          { label: 'Annulations', value: cancellations || 0 },
         ],
-        recentPayments: [
-          { id: 'evt_1', plan: 'Pro', amount: 3000, customer: 'cus_test_1', status: 'paid', date: '2026-10-02T15:30:00.000Z' },
-          { id: 'evt_2', plan: 'Starter', amount: 1000, customer: 'cus_test_2', status: 'paid', date: '2026-10-02T14:42:00.000Z' },
-          { id: 'evt_3', plan: 'Pro', amount: 3000, customer: 'cus_test_3', status: 'pending', date: '2026-10-02T13:20:00.000Z' },
-        ],
+        recentPayments,
+        revenue: {
+          total: Number((liveRevenue || 0).toFixed(2)),
+          currency: 'EUR',
+        },
         alerts: [
           `Processed events: ${processedEvents ?? 0}`,
           `Slack sent: ${sentNotifications}`,
