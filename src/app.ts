@@ -1,4 +1,5 @@
 import express, { type Request, type Response } from 'express';
+import path from 'node:path';
 import type Stripe from 'stripe';
 import type { Pool } from 'pg';
 import { plans, isPlanId } from './plans';
@@ -15,6 +16,10 @@ type AppOptions = {
 export function createApp({ stripe, pool, webhookSecret, appBaseUrl }: AppOptions) {
   const app = express();
   app.use(express.static('public'));
+
+  app.get('/dashboard', (_request: Request, response: Response) => {
+    response.sendFile(path.join(process.cwd(), 'public', 'dashboard.html'));
+  });
 
   app.get('/api/v1/health', async (_request: Request, response: Response) => {
     try {
@@ -34,6 +39,26 @@ export function createApp({ stripe, pool, webhookSecret, appBaseUrl }: AppOption
         timestamp: new Date().toISOString(),
       });
     }
+  });
+
+  app.get('/api/v1/dashboard', (_request: Request, response: Response) => {
+    response.status(200).json({
+      summary: {
+        monthlyRevenue: 4000,
+        activeSubscriptions: 42,
+        churn: 2.4,
+        conversionRate: 7.8,
+      },
+      recentPayments: [
+        { id: 'pay_1001', plan: 'Pro', amount: 3000, customer: 'cus_01', status: 'paid', date: '2026-10-02T15:30:00.000Z' },
+        { id: 'pay_1002', plan: 'Starter', amount: 1000, customer: 'cus_02', status: 'paid', date: '2026-10-02T14:42:00.000Z' },
+        { id: 'pay_1003', plan: 'Pro', amount: 3000, customer: 'cus_03', status: 'pending', date: '2026-10-02T13:20:00.000Z' },
+      ],
+      alerts: [
+        'Webhook Stripe en cours de surveillance',
+        '2 abonnements à relancer',
+      ],
+    });
   });
 
   app.post('/api/v1/checkout/sessions', express.json(), async (request: Request, response: Response) => {

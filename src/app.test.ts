@@ -33,6 +33,21 @@ describe('checkout and Stripe webhook routes', () => {
     expect(response.body).toMatchObject({ ok: true, service: 'stripe-saas-billing' });
   });
 
+  it('returns dashboard summary for the local SaaS demo', async () => {
+    const { stripe, pool } = dependencies();
+    const app = createApp({ stripe, pool, webhookSecret: 'whsec_test', appBaseUrl: 'http://localhost:3000' });
+    const response = await request(app).get('/api/v1/dashboard');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      summary: {
+        monthlyRevenue: 4000,
+        activeSubscriptions: 42,
+      },
+      recentPayments: expect.any(Array),
+    });
+  });
+
   it('rejects an unknown checkout plan before calling Stripe', async () => {
     const { stripe, pool } = dependencies();
     const app = createApp({ stripe, pool, webhookSecret: 'whsec_test', appBaseUrl: 'http://localhost:3000' });
