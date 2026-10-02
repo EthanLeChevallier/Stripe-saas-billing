@@ -1,4 +1,3 @@
-docker-compose.yml PostgreSQL local
 # Atelier Cloud | SaaS Billing, Stripe & Slack Webhooks
 
 Ce dépôt est un démonstrateur pédagogique d'un flux de facturation par abonnement. Il met en œuvre une page légère de sélection d'offre, Stripe Checkout en mode test, un endpoint de webhook signé, une déduplication persistée dans PostgreSQL et une notification Slack Block Kit envoyée par un worker asynchrone.
