@@ -11,6 +11,15 @@ Ce dépôt est un démonstrateur pédagogique d'un flux de facturation par abonn
 - Un webhook qui accepte les événements Stripe après validation de leur signature cryptographique sur le corps HTTP brut.
 - Une écriture PostgreSQL idempotente et transactionnelle de l'événement et de son message à envoyer.
 - Un worker qui poste une notification riche dans Slack, avec reprises en cas de panne.
+- Une route `GET /api/v1/health` pour vérifier rapidement le bon démarrage du service et l'état de PostgreSQL.
+- Une page de départ plus soignée avec états de succès/annulation et messages d’interface plus lisibles.
+
+## Améliorations ajoutées
+
+- Page de démonstration plus aboutie avec une mise en page premium, affichage du statut de paiement et messages de feedback.
+- Route de vivacité `GET /api/v1/health` utile pour le test local et les diagnostics.
+- Gestion explicite des états `success` et `cancelled` dans l’interface, sans casser le flux Stripe Checkout.
+- Réduction des ambiguïtés de configuration grâce à une meilleure documentation sur le rôle des secrets et du fichier `.env` local.
 
 ## Table des matières
 

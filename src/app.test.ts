@@ -24,6 +24,15 @@ function dependencies() {
 afterEach(() => vi.restoreAllMocks());
 
 describe('checkout and Stripe webhook routes', () => {
+  it('returns health information for the local service', async () => {
+    const { stripe, pool } = dependencies();
+    const app = createApp({ stripe, pool, webhookSecret: 'whsec_test', appBaseUrl: 'http://localhost:3000' });
+    const response = await request(app).get('/api/v1/health');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ ok: true, service: 'stripe-saas-billing' });
+  });
+
   it('rejects an unknown checkout plan before calling Stripe', async () => {
     const { stripe, pool } = dependencies();
     const app = createApp({ stripe, pool, webhookSecret: 'whsec_test', appBaseUrl: 'http://localhost:3000' });

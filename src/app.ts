@@ -16,6 +16,26 @@ export function createApp({ stripe, pool, webhookSecret, appBaseUrl }: AppOption
   const app = express();
   app.use(express.static('public'));
 
+  app.get('/api/v1/health', async (_request: Request, response: Response) => {
+    try {
+      await pool.query('SELECT 1');
+      response.status(200).json({
+        ok: true,
+        service: 'stripe-saas-billing',
+        database: 'connected',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Health check failed:', error);
+      response.status(503).json({
+        ok: false,
+        service: 'stripe-saas-billing',
+        database: 'down',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
   app.post('/api/v1/checkout/sessions', express.json(), async (request: Request, response: Response) => {
     const planId: unknown = request.body?.plan;
     if (!isPlanId(planId)) {
