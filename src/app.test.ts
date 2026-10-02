@@ -46,6 +46,10 @@ describe('checkout and Stripe webhook routes', () => {
       },
       revenueTrend: expect.any(Array),
       teamHealth: expect.any(Array),
+      marketing: {
+        headline: expect.any(String),
+        stats: expect.any(Array),
+      },
       recentPayments: expect.any(Array),
     });
   });

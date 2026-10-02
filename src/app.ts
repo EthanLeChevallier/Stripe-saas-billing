@@ -72,6 +72,15 @@ export function createApp({ stripe, pool, webhookSecret, appBaseUrl }: AppOption
         { label: 'Essai', value: 168 },
         { label: 'Payants', value: 42 },
       ],
+      marketing: {
+        headline: 'Le SaaS qui fait gagner du temps à vos équipes et de la confiance à vos clients.',
+        subhead: 'Centralisez facturation, onboarding et engagement dans une expérience premium pensée pour la croissance.',
+        stats: [
+          { label: 'Temps gagné', value: '4h/semaine' },
+          { label: 'Nouveaux clients', value: '+18' },
+          { label: 'Satisfaction', value: '4.9/5' },
+        ],
+      },
       recentPayments: [
         { id: 'pay_1001', plan: 'Pro', amount: 3000, customer: 'cus_01', status: 'paid', date: '2026-10-02T15:30:00.000Z' },
         { id: 'pay_1002', plan: 'Starter', amount: 1000, customer: 'cus_02', status: 'paid', date: '2026-10-02T14:42:00.000Z' },
